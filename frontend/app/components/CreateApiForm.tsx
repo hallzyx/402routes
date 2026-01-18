@@ -1,0 +1,179 @@
+'use client';
+
+import { useState } from 'react';
+import type { CreateApiRequest } from '@/src/types';
+
+interface CreateApiFormProps {
+  onSubmit: (data: CreateApiRequest) => Promise<void>;
+  onCancel: () => void;
+  walletAddress: string;
+}
+
+export default function CreateApiForm({ onSubmit, onCancel, walletAddress }: CreateApiFormProps) {
+  const [formData, setFormData] = useState<CreateApiRequest>({
+    name: '',
+    description: '',
+    category: 'Other',
+    endpoint: '',
+    method: 'GET',
+    pricePerCall: '1000000', // $1.00 default
+    ownerAddress: walletAddress,
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await onSubmit(formData);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const usdPrice = e.target.value;
+    const price = parseFloat(usdPrice) || 0;
+    setFormData({ ...formData, pricePerCall: (price * 1_000_000).toString() });
+  };
+
+  return (
+    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+      <h2 className="text-2xl font-bold text-white mb-6">Publish New API</h2>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            API Name *
+          </label>
+          <input
+            type="text"
+            required
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+            placeholder="e.g., Weather Data API"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Description *
+          </label>
+          <textarea
+            required
+            rows={3}
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+            placeholder="Describe what your API does..."
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Category *
+            </label>
+            <select
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+            >
+              <option value="Weather">Weather</option>
+              <option value="Finance">Finance</option>
+              <option value="AI">AI</option>
+              <option value="Data">Data</option>
+              <option value="Gaming">Gaming</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Method *
+            </label>
+            <select
+              value={formData.method}
+              onChange={(e) => setFormData({ ...formData, method: e.target.value as any })}
+              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+            >
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Endpoint Path *
+          </label>
+          <input
+            type="text"
+            required
+            value={formData.endpoint}
+            onChange={(e) => setFormData({ ...formData, endpoint: e.target.value })}
+            className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none font-mono"
+            placeholder="/api/your-endpoint"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Price per Call (USD) *
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            required
+            value={(parseInt(formData.pricePerCall) / 1_000_000).toFixed(2)}
+            onChange={handlePriceChange}
+            className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+            placeholder="1.00"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Base units: {formData.pricePerCall}
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Owner Address *
+          </label>
+          <input
+            type="text"
+            required
+            value={formData.ownerAddress}
+            onChange={(e) => setFormData({ ...formData, ownerAddress: e.target.value })}
+            className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-purple-500 focus:outline-none font-mono text-sm"
+            placeholder="0x..."
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Default: Your connected wallet address
+          </p>
+        </div>
+
+        <div className="flex gap-4 pt-4">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg text-white font-medium transition"
+          >
+            {isSubmitting ? 'Publishing...' : 'Publish API'}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-medium transition"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
