@@ -5,6 +5,7 @@ export interface ApiListing {
   name: string;
   description: string;
   category: string;
+  baseUrl: string;
   endpoint: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   pricePerCall: string;
@@ -17,6 +18,7 @@ export interface CreateApiRequest {
   name: string;
   description: string;
   category: string;
+  baseUrl: string;
   endpoint: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   pricePerCall: string;

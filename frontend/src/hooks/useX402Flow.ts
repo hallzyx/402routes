@@ -14,7 +14,7 @@ export interface UseX402FlowResult {
   paymentId: string;
   isLoading: boolean;
   error: string | null;
-  executeApi: (apiId: string, requestData?: unknown) => Promise<void>;
+  executeApi: (apiId: string, requestData?: unknown, httpMethod?: string) => Promise<void>;
   retryWithPaymentId: () => Promise<void>;
   reset: () => void;
 }
@@ -27,11 +27,12 @@ export function useX402Flow(): UseX402FlowResult {
   const [paymentId, setPaymentId] = useState<string>('');
   const [currentApiId, setCurrentApiId] = useState<string>('');
   const [currentRequestData, setCurrentRequestData] = useState<unknown>(null);
+  const [currentHttpMethod, setCurrentHttpMethod] = useState<string>('GET');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handlePaymentChallenge = useCallback(
-    async (challenge: PaymentChallenge, apiId: string, requestData?: unknown) => {
+    async (challenge: PaymentChallenge, apiId: string, requestData?: unknown, httpMethod?: string) => {
       try {
         const accepts0 = challenge.accepts?.[0];
         if (!accepts0) throw new Error('Invalid x402 response: accepts[0] missing');
@@ -75,7 +76,7 @@ export function useX402Flow(): UseX402FlowResult {
         setStatus(`Payment settled! txHash: ${payRes.data.txHash || 'N/A'}`);
 
         // Retry the API call with the payment ID
-        await executeApi(apiId, requestData, nextPaymentId);
+        await executeApi(apiId, requestData, httpMethod, nextPaymentId);
       } catch (err: any) {
         setError(err.message || 'Payment failed');
         setStatus('Payment failed');
@@ -86,19 +87,21 @@ export function useX402Flow(): UseX402FlowResult {
   );
 
   const executeApi = useCallback(
-    async (apiId: string, requestData?: unknown, existingPaymentId?: string) => {
+    async (apiId: string, requestData?: unknown, httpMethod?: string, existingPaymentId?: string) => {
       try {
         setIsLoading(true);
         setError(null);
         setCurrentApiId(apiId);
         setCurrentRequestData(requestData);
+        setCurrentHttpMethod(httpMethod || 'GET');
         setStatus('Executing API call...');
         setData('');
 
         const result = await api.executeApi(
           apiId,
           existingPaymentId || paymentId,
-          requestData
+          requestData,
+          httpMethod || 'GET'
         );
 
         if (result.kind === GetDataKind.Ok) {
@@ -110,7 +113,7 @@ export function useX402Flow(): UseX402FlowResult {
 
         if (result.kind === GetDataKind.PaymentRequired) {
           setStatus('Payment required. Initiating payment flow...');
-          await handlePaymentChallenge(result.challenge, apiId, requestData);
+          await handlePaymentChallenge(result.challenge, apiId, requestData, httpMethod);
           return;
         }
 
@@ -126,8 +129,8 @@ export function useX402Flow(): UseX402FlowResult {
 
   const retryWithPaymentId = useCallback(async () => {
     if (!currentApiId || !paymentId) return;
-    await executeApi(currentApiId, currentRequestData, paymentId);
-  }, [currentApiId, currentRequestData, paymentId, executeApi]);
+    await executeApi(currentApiId, currentRequestData, currentHttpMethod, paymentId);
+  }, [currentApiId, currentRequestData, currentHttpMethod, paymentId, executeApi]);
 
   const reset = useCallback(() => {
     setStatus('');

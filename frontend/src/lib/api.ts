@@ -19,7 +19,7 @@ export interface ApiClient {
   deleteApi(id: string): Promise<void>;
 
   // X402 Payment Flow
-  executeApi(apiId: string, paymentId?: string, requestData?: unknown): Promise<GetDataResult>;
+  executeApi(apiId: string, paymentId?: string, requestData?: unknown, httpMethod?: string): Promise<GetDataResult>;
   postPay(body: PostPayRequest): Promise<PostPayResult>;
 }
 
@@ -70,14 +70,19 @@ export function createApiClient(): ApiClient {
       }
     },
 
-    async executeApi(apiId: string, paymentId?: string, requestData?: unknown): Promise<GetDataResult> {
-      const res = await fetch(`${API_BASE}/api/execute/${apiId}`, {
-        method: 'POST',
+    async executeApi(apiId: string, paymentId?: string, requestData?: unknown, httpMethod: string = 'GET'): Promise<GetDataResult> {
+      // First, get the API details to know the endpoint path
+      const apiDetails = await this.getApiById(apiId);
+      const endpointPath = apiDetails.endpoint.startsWith('/') ? apiDetails.endpoint : `/${apiDetails.endpoint}`;
+      
+      // Use the proxy endpoint: /api/proxy/:apiId/<endpoint>
+      const res = await fetch(`${API_BASE}/api/proxy/${apiId}${endpointPath}`, {
+        method: httpMethod.toUpperCase(),
         headers: {
           'Content-Type': 'application/json',
           ...(paymentId ? { 'x-payment-id': paymentId } : {}),
         },
-        body: JSON.stringify(requestData || {}),
+        body: httpMethod.toUpperCase() !== 'GET' ? JSON.stringify(requestData || {}) : undefined,
       });
 
       if (res.status === 200) {

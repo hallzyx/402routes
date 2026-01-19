@@ -14,7 +14,7 @@ export class MarketplaceController {
    */
   getAllApis = async (_req: Request, res: Response, next: NextFunction) => {
     try {
-      const apis = this.service.getAllApis();
+      const apis = await this.service.getAllApis();
       res.json({ ok: true, data: apis });
     } catch (error) {
       next(error);
@@ -28,7 +28,7 @@ export class MarketplaceController {
   getApiById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const api = this.service.getApiById(id);
+      const api = await this.service.getApiById(id);
       
       if (!api) {
         return res.status(404).json({ ok: false, error: 'API not found' });
@@ -56,7 +56,7 @@ export class MarketplaceController {
         });
       }
       
-      const api = this.service.createApi(data);
+      const api = await this.service.createApi(data);
       res.status(201).json({ ok: true, data: api });
     } catch (error) {
       next(error);
@@ -72,7 +72,7 @@ export class MarketplaceController {
       const { id } = req.params;
       const updates = req.body;
       
-      const api = this.service.updateApi(id, updates);
+      const api = await this.service.updateApi(id, updates);
       
       if (!api) {
         return res.status(404).json({ ok: false, error: 'API not found' });
@@ -91,7 +91,7 @@ export class MarketplaceController {
   deleteApi = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const deleted = this.service.deleteApi(id);
+      const deleted = await this.service.deleteApi(id);
       
       if (!deleted) {
         return res.status(404).json({ ok: false, error: 'API not found' });

@@ -8,6 +8,7 @@ export interface ApiListing {
   name: string;
   description: string;
   category: string;
+  baseUrl: string;
   endpoint: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   pricePerCall: string; // in base units
@@ -23,6 +24,7 @@ export interface CreateApiRequest {
   name: string;
   description: string;
   category: string;
+  baseUrl: string;
   endpoint: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   pricePerCall: string;

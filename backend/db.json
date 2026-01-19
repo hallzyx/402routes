@@ -1,0 +1,159 @@
+{
+  "apis": [
+    {
+      "name": "Weather API",
+      "description": "Get current weather data for any city",
+      "category": "Weather",
+      "baseUrl": "https://api.weatherapi.com",
+      "endpoint": "/v1/current.json",
+      "method": "GET",
+      "pricePerCall": "100000",
+      "ownerAddress": "0x0000000000000000000000000000000000000001",
+      "isActive": true,
+      "id": "4466d986-3f2d-4079-9a6d-7fde2c77bbaf",
+      "createdAt": 1768714674418
+    },
+    {
+      "name": "Coffe API",
+      "description": "Get a random coffe API",
+      "category": "Funny",
+      "baseUrl": "https://coffee.alexflipnote.dev",
+      "endpoint": "/random.json",
+      "method": "GET",
+      "pricePerCall": "500000",
+      "ownerAddress": "0xb3173d618e51277372B473e02E8ab05e97A3626c",
+      "isActive": true,
+      "id": "ac13a314-ee75-46e7-8a4c-13a6a7cf1ca9",
+      "createdAt": 1768714674418
+    },
+    {
+      "name": "AI Text Generation",
+      "description": "Generate text using AI models",
+      "category": "AI",
+      "baseUrl": "https://api.openai.com",
+      "endpoint": "/v1/completions",
+      "method": "POST",
+      "pricePerCall": "2000000",
+      "ownerAddress": "0x0000000000000000000000000000000000000003",
+      "isActive": true,
+      "id": "6c6a4893-bd26-450f-b8a5-00a8a8674665",
+      "createdAt": 1768714674418
+    },
+    {
+      "name": "No as a service",
+      "description": "Say no in many ways",
+      "category": "Other",
+      "baseUrl": "https://naas.isalman.dev",
+      "endpoint": "/no",
+      "method": "GET",
+      "pricePerCall": "10000",
+      "ownerAddress": "0xb3173d618e51277372B473e02E8ab05e97A3626c",
+      "id": "2bcdc44a-6be3-4930-b61b-cfc18e0fd1bc",
+      "createdAt": 1768714991891,
+      "isActive": true
+    }
+  ],
+  "wallets": [
+    "0xb3173d618e51277372B473e02E8ab05e97A3626c"
+  ],
+  "transactions": [
+    {
+      "id": "24a30f89-a34a-43b7-9673-7403c78a6915",
+      "apiId": "2bcdc44a-6be3-4930-b61b-cfc18e0fd1bc",
+      "walletAddress": "unknown",
+      "amount": "10000",
+      "timestamp": 1768767029752
+    },
+    {
+      "id": "50f42fe1-c476-46a9-870a-ba8ff306419d",
+      "apiId": "2bcdc44a-6be3-4930-b61b-cfc18e0fd1bc",
+      "walletAddress": "unknown",
+      "amount": "10000",
+      "timestamp": 1768767516338
+    },
+    {
+      "id": "c639958a-709f-4989-b136-26b5166b63ef",
+      "apiId": "2bcdc44a-6be3-4930-b61b-cfc18e0fd1bc",
+      "walletAddress": "unknown",
+      "amount": "10000",
+      "timestamp": 1768768996877
+    },
+    {
+      "id": "33ef62b3-4d1b-4774-999e-48c2a968e827",
+      "apiId": "2bcdc44a-6be3-4930-b61b-cfc18e0fd1bc",
+      "walletAddress": "unknown",
+      "amount": "10000",
+      "timestamp": 1768769683045
+    },
+    {
+      "id": "172c39f4-c5e7-47a9-b6ad-c01e2697e176",
+      "apiId": "2bcdc44a-6be3-4930-b61b-cfc18e0fd1bc",
+      "walletAddress": "unknown",
+      "amount": "10000",
+      "timestamp": 1768770545460
+    },
+    {
+      "id": "54474732-3ed3-46ff-98e5-e9e691878e0b",
+      "apiId": "2bcdc44a-6be3-4930-b61b-cfc18e0fd1bc",
+      "walletAddress": "unknown",
+      "amount": "10000",
+      "timestamp": 1768771261435
+    },
+    {
+      "id": "600236f2-d872-4259-80d9-1ed44b577b42",
+      "apiId": "2bcdc44a-6be3-4930-b61b-cfc18e0fd1bc",
+      "walletAddress": "unknown",
+      "amount": "10000",
+      "timestamp": 1768773864454
+    },
+    {
+      "id": "b7d7d592-1556-42fd-9971-f901eee90a03",
+      "apiId": "2bcdc44a-6be3-4930-b61b-cfc18e0fd1bc",
+      "walletAddress": "unknown",
+      "amount": "10000",
+      "timestamp": 1768773970032
+    },
+    {
+      "id": "dad233fd-c6cf-458e-b3d2-869cc166f496",
+      "apiId": "2bcdc44a-6be3-4930-b61b-cfc18e0fd1bc",
+      "walletAddress": "unknown",
+      "amount": "10000",
+      "timestamp": 1768776709318
+    },
+    {
+      "id": "8921a5f4-7d5d-4853-819a-1848f4fb643b",
+      "apiId": "2bcdc44a-6be3-4930-b61b-cfc18e0fd1bc",
+      "walletAddress": "unknown",
+      "amount": "10000",
+      "timestamp": 1768777314306
+    },
+    {
+      "id": "a1fa2447-7c3b-42c5-8619-a616da88815c",
+      "apiId": "ac13a314-ee75-46e7-8a4c-13a6a7cf1ca9",
+      "walletAddress": "unknown",
+      "amount": "500000",
+      "timestamp": 1768777791282
+    },
+    {
+      "id": "04538ff3-9eeb-46ee-aaa4-d6b010300928",
+      "apiId": "ac13a314-ee75-46e7-8a4c-13a6a7cf1ca9",
+      "walletAddress": "unknown",
+      "amount": "500000",
+      "timestamp": 1768778045127
+    },
+    {
+      "id": "4c7199a4-d8e9-4582-b5e1-7a7879743fb1",
+      "apiId": "ac13a314-ee75-46e7-8a4c-13a6a7cf1ca9",
+      "walletAddress": "unknown",
+      "amount": "500000",
+      "timestamp": 1768778483112
+    },
+    {
+      "id": "5c085584-d37f-4d58-9eb7-1ea102b47a7c",
+      "apiId": "2bcdc44a-6be3-4930-b61b-cfc18e0fd1bc",
+      "walletAddress": "unknown",
+      "amount": "10000",
+      "timestamp": 1768779658376
+    }
+  ]
+}
