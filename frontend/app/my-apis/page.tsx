@@ -49,37 +49,22 @@ export default function MyApisPage() {
   };
 
   const handleDeleteApi = async (apiId: string) => {
-    if (!confirm('Are you sure you want to delete this API?')) {
+    if (!confirm('Are you sure you want to delete this API? This action cannot be undone.')) {
       return;
     }
-    // TODO: Implementar eliminación de API
-    console.log('Delete API:', apiId);
+    
+    try {
+      await api.deleteApi(apiId);
+      // Remove from state immediately
+      setApis(prev => prev.filter(api => api.id !== apiId));
+    } catch (error) {
+      console.error('Failed to delete API:', error);
+      alert('Failed to delete API. Please try again.');
+    }
   };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-        <div className="container mx-auto max-w-7xl px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-8">
-              <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/')}>
-                <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-purple-700 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">4</span>
-                </div>
-                <h1 className="text-xl font-bold text-gray-900">402Routes</h1>
-              </div>
-              <button
-                onClick={() => router.push('/discover')}
-                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
-              >
-                Discover APIs
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="container mx-auto max-w-7xl px-6 py-24">
         <div className="mb-12">

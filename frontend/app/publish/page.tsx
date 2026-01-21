@@ -2,18 +2,42 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FiArrowLeft } from 'react-icons/fi';
 import { getWalletAddress, isWalletConnected } from '@/src/utils/wallet';
-import CreateApiForm from '../components/CreateApiForm';
 import { createApiClient } from '@/src/lib/api';
 import type { CreateApiRequest } from '@/src/types';
+import { 
+  MdAccountBalanceWallet, 
+  MdInfo, 
+  MdSettingsEthernet, 
+  MdPayments, 
+  MdHelp, 
+  MdAutoAwesome, 
+  MdClose, 
+  MdSecurity, 
+  MdSpeed 
+} from 'react-icons/md';
 
 export default function PublishPage() {
   const router = useRouter();
   const [walletAddress, setWalletAddress] = useState<string>('');
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(true);
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [formData, setFormData] = useState<CreateApiRequest>({
+    name: '',
+    description: '',
+    category: 'Other',
+    baseUrl: '',
+    endpoint: '',
+    method: 'GET',
+    pricePerCall: '1000000', // Default 1.00 USDC
+    ownerAddress: '',
+  });
+
+  // Helper for price input (User sees USDC, we store microUSDC)
+  const [displayPrice, setDisplayPrice] = useState('1.000');
+
   const api = createApiClient();
 
   useEffect(() => {
@@ -26,6 +50,7 @@ export default function PublishPage() {
       if (connected) {
         const address = await getWalletAddress();
         setWalletAddress(address);
+        setFormData(prev => ({ ...prev, ownerAddress: address }));
         setIsConnected(true);
       }
     } catch (error) {
@@ -39,6 +64,7 @@ export default function PublishPage() {
     try {
       const address = await getWalletAddress();
       setWalletAddress(address);
+      setFormData(prev => ({ ...prev, ownerAddress: address }));
       setIsConnected(true);
     } catch (error) {
       console.error('Failed to connect wallet:', error);
@@ -46,93 +72,289 @@ export default function PublishPage() {
     }
   };
 
-  const handleCreateApi = async (data: CreateApiRequest) => {
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setDisplayPrice(val);
+    const numeric = parseFloat(val);
+    if (!isNaN(numeric)) {
+      setFormData(prev => ({ ...prev, pricePerCall: Math.round(numeric * 1000000).toString() }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
     try {
-      const result = await api.createApi(data);
-      // Redirect to success page with API id
-      router.push(`/publish/success?id=${result.id}`);
+      // Map category values if necessary (e.g. "ai" -> "AI")
+      const categoryMap: Record<string, string> = {
+        'ai': 'AI',
+        'weather': 'Weather',
+        'finance': 'Finance',
+        'data': 'Data',
+        'other': 'Other',
+        'ecommerce': 'Ecommerce'
+      };
+      
+      const payload = {
+        ...formData,
+        category: categoryMap[formData.category.toLowerCase()] || formData.category
+      };
+
+      const result = await api.createApi(payload);
+      router.push(`/apis/${result.id}`); 
     } catch (error: any) {
       alert(`Failed to create API: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-purple-600 border-r-transparent"></div>
+      <div className="min-h-screen bg-background-light flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <button
-            onClick={() => router.push('/')}
-            className="text-purple-600 hover:text-purple-700 flex items-center gap-2 font-semibold text-sm mb-8 transition-colors"
-          >
-            <FiArrowLeft /> Back to Home
-          </button>
-
-          <div className="max-w-md mx-auto">
-            <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-xl text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Connect Your Wallet</h2>
-              <p className="text-gray-600 mb-8">
-                Connect your wallet to start publishing APIs on 402Routes
-              </p>
-
-              <button
-                onClick={handleConnectWallet}
-                className="w-full px-6 py-4 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-3"
-              >
-                <svg className="w-6 h-6" viewBox="0 0 40 40" fill="none">
-                  <path d="M37.8 15.2L22.5 4.8c-1.4-1-3.6-1-5 0L2.2 15.2C.8 16.2 0 17.8 0 19.4v1.2c0 1.6.8 3.2 2.2 4.2l15.3 10.4c1.4 1 3.6 1 5 0l15.3-10.4c1.4-1 2.2-2.6 2.2-4.2v-1.2c0-1.6-.8-3.2-2.2-4.2z" fill="#E17726"/>
-                  <path d="M26.8 20L20 24.8 13.2 20l6.8-4.8 6.8 4.8z" fill="#E27625"/>
-                  <path d="M13.2 20v8l6.8 4.8v-8l-6.8-4.8z" fill="#E27625"/>
-                  <path d="M26.8 20v8l-6.8 4.8v-8l6.8-4.8z" fill="#D5BFB2"/>
-                  <path d="M13.2 12l6.8-4.8L26.8 12 20 16.8 13.2 12z" fill="#E27625"/>
-                </svg>
-                Connect MetaMask
-              </button>
-
-              <button
-                onClick={() => router.push('/')}
-                className="w-full mt-4 px-6 py-3 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-semibold rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
+      <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-slate-200 dark:border-slate-700">
+           <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <MdAccountBalanceWallet className="text-3xl" />
           </div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Connect Wallet</h2>
+          <p className="text-slate-500 mb-8">Please connect your wallet to publish an API.</p>
+          <button 
+            onClick={handleConnectWallet}
+            className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-primary/20"
+          >
+            Connect MetaMask
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <button
-          onClick={() => router.push('/')}
-          className="text-purple-600 hover:text-purple-700 flex items-center gap-2 font-semibold text-sm mb-8 transition-colors"
-        >
-          <FiArrowLeft /> Back to Home
-        </button>
-
-        <div className="max-w-3xl mx-auto">
-          <CreateApiForm
-            onSubmit={handleCreateApi}
-            onCancel={() => router.push('/')}
-            walletAddress={walletAddress}
-          />
+    <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 font-display">
+      <main className="max-w-3xl mx-auto px-4 py-12 relative animate-fade-in">
+        <div className="fixed inset-0 grid-pattern pointer-events-none -z-10"></div>
+        
+        <div className="mb-10 text-center">
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-3">Publish New API</h1>
+          <p className="text-slate-600 dark:text-slate-400 text-lg">Share your API with the community and start earning USDC on every call.</p>
         </div>
-      </div>
+
+        <div className="bg-card-light dark:bg-card-dark rounded-3xl shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="p-8 md:p-10">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              
+              {/* General Info */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 text-primary font-bold text-sm uppercase tracking-wider">
+                  <MdInfo className="text-lg" />
+                  General Information
+                </div>
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2" htmlFor="api-name">API Name *</label>
+                    <input 
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white placeholder:text-slate-400" 
+                      id="api-name" 
+                      required
+                      placeholder="e.g., Global Weather Insights" 
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2" htmlFor="description">Description *</label>
+                    <textarea 
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white placeholder:text-slate-400" 
+                      id="description" 
+                      required
+                      placeholder="Describe what your API does and how it helps developers..." 
+                      rows={3}
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    ></textarea>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2" htmlFor="category">Category *</label>
+                    <select 
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white" 
+                      id="category"
+                      value={formData.category}
+                      onChange={(e) => setFormData({...formData, category: e.target.value})}
+                    >
+                      <option value="Data">Data & Analytics</option>
+                      <option value="AI">Artificial Intelligence</option>
+                      <option value="Weather">Weather</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Ecommerce">E-commerce</option>
+                      <option value="Funny">Funny</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2" htmlFor="method">Method *</label>
+                    <select 
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white" 
+                      id="method"
+                      value={formData.method}
+                      onChange={(e) => setFormData({...formData, method: e.target.value as any})}
+                    >
+                      <option value="GET">GET</option>
+                      <option value="POST">POST</option>
+                      <option value="PUT">PUT</option>
+                      <option value="DELETE">DELETE</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-slate-100 dark:bg-slate-800"></div>
+
+              {/* Technical Setup */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 text-primary font-bold text-sm uppercase tracking-wider">
+                  <MdSettingsEthernet className="text-lg" />
+                  Technical Setup
+                </div>
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2" htmlFor="base-url">Base URL *</label>
+                    <input 
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white placeholder:text-slate-400" 
+                      id="base-url" 
+                      required
+                      placeholder="https://api.yourdomain.com" 
+                      type="url"
+                      value={formData.baseUrl}
+                      onChange={(e) => setFormData({...formData, baseUrl: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2" htmlFor="endpoint-path">Endpoint Path *</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-sm">/</span>
+                      <input 
+                        className="w-full pl-7 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white placeholder:text-slate-400" 
+                        id="endpoint-path" 
+                        required
+                        placeholder="v1/forecast" 
+                        type="text"
+                        value={formData.endpoint.startsWith('/') ? formData.endpoint.substring(1) : formData.endpoint}
+                        onChange={(e) => setFormData({...formData, endpoint: '/' + e.target.value.replace(/^\//, '')})}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-slate-100 dark:bg-slate-800"></div>
+
+              {/* Monetization */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 text-primary font-bold text-sm uppercase tracking-wider">
+                  <MdPayments className="text-lg" />
+                  Monetization & Ownership
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2" htmlFor="price">Price per Call (USDC) *</label>
+                    <div className="relative">
+                      <input 
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white placeholder:text-slate-400" 
+                        id="price" 
+                        placeholder="1.000" 
+                        step="0.001" 
+                        type="number"
+                        min="0"
+                        value={displayPrice}
+                        onChange={handlePriceChange}
+                      />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">USDC</div>
+                    </div>
+                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-500 flex items-center gap-1">
+                      <MdHelp className="text-sm" />
+                      Base units: 1,000,000 (Cronos USDC decimals)
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2" htmlFor="owner-address">Owner Address *</label>
+                    <input 
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 text-slate-500 dark:text-slate-500 font-mono text-xs cursor-not-allowed" 
+                      id="owner-address" 
+                      readOnly 
+                      type="text" 
+                      value={walletAddress}
+                    />
+                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-500">Default: Your connected wallet address</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 flex flex-col sm:flex-row items-center gap-4">
+                <button 
+                  className="w-full sm:flex-1 bg-primary hover:opacity-90 text-white py-4 rounded-2xl text-base font-bold transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed" 
+                  type="submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    'Publishing...'
+                  ) : (
+                    <>
+                      <MdAutoAwesome className="group-hover:rotate-12 transition-transform" />
+                      Publish API
+                    </>
+                  )}
+                </button>
+                <button 
+                  className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-2" 
+                  type="button"
+                  onClick={() => router.back()}
+                >
+                  <MdClose />
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+          
+          <div className="bg-slate-50 dark:bg-slate-900/50 px-8 py-4 border-t border-slate-100 dark:border-slate-800/50 flex items-center justify-center gap-6">
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <MdSecurity className="text-base text-emerald-500" />
+              X402 Protocol Secured
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <MdSpeed className="text-base text-primary" />
+              Instant Settlement
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-500 max-w-lg mx-auto leading-relaxed">
+          By publishing, you agree to the 402Routes Developer Terms. Your API will be immediately discoverable by AI Agents across the Cronos ecosystem.
+        </p>
+      </main>
+
+      <footer className="mt-12 py-8 border-t border-slate-200 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="bg-primary/10 text-primary p-1 rounded-md font-bold text-xs">4</div>
+            <span className="font-bold text-sm tracking-tight text-slate-400">Routes</span>
+          </div>
+          <p className="text-xs text-slate-400 dark:text-slate-600">
+            © 2024 402Routes. Built on Cronos & X402 Protocol.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

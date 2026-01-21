@@ -21,10 +21,31 @@ export interface ApiClient {
   // X402 Payment Flow
   executeApi(apiId: string, paymentId?: string, requestData?: unknown, httpMethod?: string): Promise<GetDataResult>;
   postPay(body: PostPayRequest): Promise<PostPayResult>;
+  
+  // Subscriptions
+  subscribeToApi(walletAddress: string, apiId: string): Promise<any>;
+  getSubscriptions(walletAddress: string): Promise<any[]>;
 }
 
 export function createApiClient(): ApiClient {
   return {
+    async subscribeToApi(walletAddress: string, apiId: string): Promise<any> {
+      const res = await fetch(`${API_BASE}/api/subscriptions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress, apiId }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to subscribe');
+      return json.data;
+    },
+
+    async getSubscriptions(walletAddress: string): Promise<any[]> {
+      const res = await fetch(`${API_BASE}/api/subscriptions?walletAddress=${walletAddress}`);
+      const json = await res.json();
+      return json.data || [];
+    },
+
     async getAllApis(): Promise<ApiListing[]> {
       const res = await fetch(`${API_BASE}/api/marketplace`);
       const json = await res.json();

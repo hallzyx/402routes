@@ -22,6 +22,40 @@ export class MarketplaceController {
   };
 
   /**
+   * POST /api/subscriptions
+   * Subscribe to an API.
+   */
+  subscribeToApi = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { walletAddress, apiId } = req.body;
+      if (!walletAddress || !apiId) {
+        return res.status(400).json({ ok: false, error: 'Missing walletAddress or apiId' });
+      }
+      const sub = await this.service.subscribeToApi(walletAddress, apiId);
+      res.status(201).json({ ok: true, data: sub });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * GET /api/subscriptions
+   * Get user subscriptions.
+   */
+  getSubscriptions = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { walletAddress } = req.query;
+      if (!walletAddress) {
+        return res.status(400).json({ ok: false, error: 'Missing walletAddress query param' });
+      }
+      const subs = await this.service.getSubscriptions(String(walletAddress));
+      res.json({ ok: true, data: subs });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
    * GET /api/marketplace/:id
    * Returns a specific API listing by id.
    */

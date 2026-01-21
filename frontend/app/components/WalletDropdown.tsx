@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FiChevronDown, FiPackage, FiCreditCard, FiLogOut } from 'react-icons/fi';
+import { FiChevronDown, FiPackage, FiCreditCard, FiLogOut, FiBarChart2 } from 'react-icons/fi';
 
 interface WalletDropdownProps {
   walletAddress: string;
@@ -45,6 +45,14 @@ export default function WalletDropdown({ walletAddress, onLogout }: WalletDropdo
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
           <button
+            onClick={() => handleNavigation('/dashboard')}
+            className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors"
+          >
+            <FiBarChart2 className="w-4 h-4" />
+            <span className="font-medium">User Dashboard</span>
+          </button>
+          <div className="border-t border-gray-200 my-2"></div>
+          <button
             onClick={() => handleNavigation('/my-apis')}
             className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors"
           >
@@ -57,6 +65,15 @@ export default function WalletDropdown({ walletAddress, onLogout }: WalletDropdo
           >
             <FiCreditCard className="w-4 h-4" />
             <span className="font-medium">My Subscriptions</span>
+          </button>
+          <button
+            onClick={() => handleNavigation('/guardian')}
+            className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-medium">Guardian Dashboard</span>
           </button>
           <div className="border-t border-gray-200 my-2"></div>
           <button

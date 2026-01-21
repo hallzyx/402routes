@@ -13,6 +13,12 @@ const controller = new MarketplaceController();
 // GET /api/marketplace - List all APIs
 router.get('/marketplace', controller.getAllApis);
 
+// POST /api/subscriptions - Subscribe to API
+router.post('/subscriptions', controller.subscribeToApi);
+
+// GET /api/subscriptions - Get user subscriptions
+router.get('/subscriptions', controller.getSubscriptions);
+
 // GET /api/marketplace/:id - Get API details
 router.get('/marketplace/:id', controller.getApiById);
 

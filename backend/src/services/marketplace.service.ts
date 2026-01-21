@@ -8,6 +8,11 @@ import { NETWORK } from '../config/x402.config.js';
 
 interface Database {
   apis: ApiListing[];
+  subscriptions: Array<{
+    walletAddress: string;
+    apiId: string;
+    timestamp: number;
+  }>;
   wallets: string[];
   transactions: Array<{
     id: string;
@@ -49,10 +54,12 @@ export class MarketplaceService {
   private async readDatabase(): Promise<Database> {
     try {
       const data = await fs.readFile(this.dbPath, 'utf-8');
-      return JSON.parse(data);
+      const db = JSON.parse(data);
+      if (!db.subscriptions) db.subscriptions = [];
+      return db;
     } catch (error) {
       // If file doesn't exist, return empty database
-      return { apis: [], wallets: [], transactions: [] };
+      return { apis: [], subscriptions: [], wallets: [], transactions: [] };
     }
   }
 
@@ -64,8 +71,80 @@ export class MarketplaceService {
   }
 
   /**
-   * Seeds the marketplace with example APIs for demo purposes.
+   * Subscribe user to an API
    */
+  async subscribeToApi(walletAddress: string, apiId: string) {
+    const db = await this.readDatabase();
+    
+    // Check if API exists
+    const apiExists = db.apis.find(a => a.id === apiId);
+    if (!apiExists) throw new Error('API not found');
+
+    // Check if already subscribed
+    const existing = db.subscriptions.find(s => s.walletAddress.toLowerCase() === walletAddress.toLowerCase() && s.apiId === apiId);
+    if (existing) return existing;
+
+    const subscription = {
+      walletAddress,
+      apiId,
+      timestamp: Date.now()
+    };
+    
+    db.subscriptions.push(subscription);
+    await this.writeDatabase(db);
+    return subscription;
+  }
+
+  /**
+   * Get user subscriptions
+   */
+  async getSubscriptions(walletAddress: string) {
+    const db = await this.readDatabase();
+    const subs = db.subscriptions.filter(s => s.walletAddress.toLowerCase() === walletAddress.toLowerCase());
+    
+    // Enrich with API details
+    return subs.map(sub => {
+      const api = db.apis.find(a => a.id === sub.apiId);
+      return { ...sub, api };
+    });
+  }
+
+  /**
+   * Get all active APIs.
+   */
+  async getAllApis(): Promise<ApiListing[]> {
+    const db = await this.readDatabase();
+    return db.apis.filter(api => api.isActive);
+  }
+
+  /**
+   * Get API by ID.
+   */
+  async getApiById(id: string): Promise<ApiListing | undefined> {
+    const db = await this.readDatabase();
+    return db.apis.find(api => api.id === id);
+  }
+
+  /**
+   * Create a new API listing.
+   */
+  async createApi(data: CreateApiRequest): Promise<ApiListing> {
+    const db = await this.readDatabase();
+    
+    const newApi: ApiListing = {
+      id: crypto.randomUUID(),
+      ...data,
+      ownerAddress: data.ownerAddress || '0x0000000000000000000000000000000000000000',
+      isActive: true,
+      createdAt: new Date().toISOString(),
+    };
+
+    db.apis.push(newApi);
+    await this.writeDatabase(db);
+    
+    return newApi;
+  }
+
   private async seedExampleApis() {
     const examples: Omit<ApiListing, 'id' | 'createdAt'>[] = [
       {

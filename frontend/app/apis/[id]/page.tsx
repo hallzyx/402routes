@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { use } from 'react';
-import { FiArrowLeft, FiEdit, FiBarChart2 } from 'react-icons/fi';
-import { HiOutlineCodeBracket } from 'react-icons/hi2';
+import { FiArrowLeft, FiEdit, FiBarChart2, FiCheck } from 'react-icons/fi';
+import { HiOutlineCodeBracket, HiSparkles } from 'react-icons/hi2';
 import { createApiClient } from '@/src/lib/api';
+import { getWalletAddress, isWalletConnected } from '@/src/utils/wallet';
 import ApiExecutor from '@/app/components/ApiExecutor';
 import type { ApiListing } from '@/src/types';
 
@@ -14,11 +15,14 @@ export default function ApiDetailPage({ params }: { params: Promise<{ id: string
   const { id } = use(params);
   const [api, setApi] = useState<ApiListing | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
 
   const client = createApiClient();
 
   useEffect(() => {
     loadApiDetails();
+    checkSubscription();
   }, [id]);
 
   const loadApiDetails = async () => {
@@ -29,6 +33,37 @@ export default function ApiDetailPage({ params }: { params: Promise<{ id: string
       console.error('Failed to load API:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkSubscription = async () => {
+    try {
+      const connected = await isWalletConnected();
+      if (connected) {
+        const address = await getWalletAddress();
+        const subs = await client.getSubscriptions(address);
+        const isSub = subs.some((s: any) => s.apiId === id);
+        setIsSubscribed(isSub);
+      }
+    } catch (error) {
+      console.error('Failed to check subscription:', error);
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    try {
+      setSubscriptionLoading(true);
+      const address = await getWalletAddress();
+      await client.subscribeToApi(address, id);
+      setIsSubscribed(true);
+      alert('Successfully subscribed! You can now use the API.');
+    } catch (error) {
+      console.error('Failed to subscribe:', error);
+      alert('Failed to subscribe. Please try again.');
+    } finally {
+      setSubscriptionLoading(false);
     }
   };
 
@@ -60,18 +95,6 @@ export default function ApiDetailPage({ params }: { params: Promise<{ id: string
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
-          <button
-            onClick={() => router.push('/')}
-            className="text-purple-600 hover:text-purple-700 flex items-center gap-2 font-semibold text-sm transition-colors"
-          >
-            <FiArrowLeft /> Back to Marketplace
-          </button>
-        </div>
-      </header>
-
       {/* API Details */}
       <main className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white border-2 border-gray-200 rounded-2xl p-6 sm:p-8 shadow-lg mb-8">
@@ -110,35 +133,24 @@ export default function ApiDetailPage({ params }: { params: Promise<{ id: string
             </div>
           </div>
 
-          <div className="space-y-4">
-            {/* Backend Proxy URL */}
-            <div className="p-6 bg-purple-50 border-2 border-purple-200 rounded-xl">
-              <div className="flex items-center gap-2 mb-3">
-                <HiOutlineCodeBracket className="w-5 h-5 text-purple-600" />
-                <p className="text-sm font-bold text-gray-900">Endpoint para Navegador (con MetaMask):</p>
+          {isSubscribed && (
+            <div className="space-y-4">
+              {/* Unified Endpoint URL */}
+              <div className="p-6 bg-purple-50 border-2 border-purple-200 rounded-xl">
+                <div className="flex items-center gap-2 mb-3">
+                  <HiOutlineCodeBracket className="w-5 h-5 text-purple-600" />
+                  <p className="text-sm font-bold text-gray-900">Endpoint de Consumo 402 Wrapped</p>
+                </div>
+                <code className="block px-4 py-3 bg-white border-2 border-gray-300 rounded-lg text-sm font-mono text-gray-700 break-all">
+                  {process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8787'}/api/proxy/{api.id}{api.endpoint}
+                </code>
+                <p className="text-xs text-gray-600 mt-3 leading-relaxed">
+                  🌐 <b>Navegador:</b> Redirige automáticamente al pago con MetaMask.<br/>
+                  🔧 <b>Scripts/Backend:</b> Incluye el header <code className="px-1 py-0.5 bg-gray-200 rounded">x-payment-id</code> para pagos programáticos.
+                </p>
               </div>
-              <code className="block px-4 py-3 bg-white border-2 border-gray-300 rounded-lg text-sm font-mono text-gray-700 break-all">
-                {process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8787'}/api/proxy/{api.id}{api.endpoint}
-              </code>
-              <p className="text-xs text-gray-600 mt-3">
-                🌐 Abre este link en el navegador y automáticamente te redirige a la página de pago con MetaMask.
-              </p>
             </div>
-
-            {/* API Direct URL */}
-            <div className="p-6 bg-blue-50 border-2 border-blue-200 rounded-xl">
-              <div className="flex items-center gap-2 mb-3">
-                <HiOutlineCodeBracket className="w-5 h-5 text-blue-600" />
-                <p className="text-sm font-bold text-gray-900">Endpoint para APIs/Scripts (con X-Payment-ID):</p>
-              </div>
-              <code className="block px-4 py-3 bg-white border-2 border-gray-300 rounded-lg text-sm font-mono text-gray-700 break-all">
-                {process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8787'}/api/proxy/{api.id}{api.endpoint}
-              </code>
-              <p className="text-xs text-gray-600 mt-3">
-                🔧 Incluye el header <code className="px-1 py-0.5 bg-gray-200 rounded">x-payment-id</code> en tu request. Después del pago, redirige a: <span className="font-semibold">{api.baseUrl}{api.endpoint}</span>
-              </p>
-            </div>
-          </div>
+          )}
 
           <div className="flex flex-wrap gap-4 mt-8">
             <button
@@ -158,11 +170,30 @@ export default function ApiDetailPage({ params }: { params: Promise<{ id: string
           </div>
         </div>
 
-        {/* Test API Section */}
-        <ApiExecutor 
-          api={api} 
-          onBack={() => router.push('/')} 
-        />
+        {/* Test API Section or Subscribe */}
+        {isSubscribed ? (
+           <ApiExecutor 
+             api={api} 
+             onBack={() => router.push('/')} 
+           />
+        ) : (
+           <div className="bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-100 rounded-2xl p-8 text-center mt-8">
+              <div className="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <HiSparkles className="w-8 h-8 text-violet-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Subscribe to Use This API</h2>
+              <p className="text-gray-600 max-w-lg mx-auto mb-8">
+                 Add this API to your subscriptions to start making requests and integrating it into your applications.
+              </p>
+              <button
+                onClick={handleSubscribe}
+                disabled={subscriptionLoading}
+                className="px-8 py-4 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {subscriptionLoading ? 'Processing...' : 'Subscribe Now (Free)'}
+              </button>
+           </div>
+        )}
       </main>
     </div>
   );
