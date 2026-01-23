@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { HiSparkles } from 'react-icons/hi2';
+import { FiTrash2 } from 'react-icons/fi';
 import { createApiClient } from '@/src/lib/api';
 import { getWalletAddress, isWalletConnected } from '@/src/utils/wallet';
 import ApiCard from '../components/ApiCard';
@@ -40,6 +41,19 @@ export default function MySubscriptionsPage() {
     router.push(`/execute/${apiListing.id}`);
   };
 
+  const handleUnsubscribe = async (apiId: string) => {
+    try {
+      const address = await getWalletAddress();
+      await api.unsubscribeToApi(address, apiId);
+      // Reload subscriptions
+      loadSubscriptions();
+      alert('Successfully unsubscribed!');
+    } catch (error) {
+      console.error('Failed to unsubscribe:', error);
+      alert('Failed to unsubscribe. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Main Content */}
@@ -72,11 +86,22 @@ export default function MySubscriptionsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {subscriptions.map((sub) => (
-              <ApiCard
-                key={sub.apiId}
-                api={sub.api}
-                onSelect={handleSelectApi}
-              />
+              <div key={sub.apiId} className="relative">
+                <ApiCard
+                  api={sub.api}
+                  onSelect={handleSelectApi}
+                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUnsubscribe(sub.apiId);
+                  }}
+                  className="absolute top-4 right-4 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all"
+                  title="Unsubscribe"
+                >
+                  <FiTrash2 className="w-4 h-4" />
+                </button>
+              </div>
             ))}
           </div>
         )}

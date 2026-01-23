@@ -19,6 +19,9 @@ router.post('/subscriptions', controller.subscribeToApi);
 // GET /api/subscriptions - Get user subscriptions
 router.get('/subscriptions', controller.getSubscriptions);
 
+// DELETE /api/subscriptions - Unsubscribe from API
+router.delete('/subscriptions', controller.unsubscribeToApi);
+
 // GET /api/marketplace/:id - Get API details
 router.get('/marketplace/:id', controller.getApiById);
 

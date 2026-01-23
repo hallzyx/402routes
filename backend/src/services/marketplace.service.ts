@@ -110,6 +110,18 @@ export class MarketplaceService {
   }
 
   /**
+   * Unsubscribe user from an API
+   */
+  async unsubscribeToApi(walletAddress: string, apiId: string) {
+    const db = await this.readDatabase();
+    const index = db.subscriptions.findIndex(s => s.walletAddress.toLowerCase() === walletAddress.toLowerCase() && s.apiId === apiId);
+    if (index === -1) throw new Error('Subscription not found');
+    db.subscriptions.splice(index, 1);
+    await this.writeDatabase(db);
+    return true;
+  }
+
+  /**
    * Get all active APIs.
    */
   async getAllApis(): Promise<ApiListing[]> {

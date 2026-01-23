@@ -20,16 +20,18 @@
 └─────────────────────┘         └──────────────────────┘
          │                                 │
          │                                 │
-         │        ┌────────────────────────┘
-         │        │
-         │        │ Verification & Settlement
-         │        ▼
-         │  ┌──────────────────────┐
-         │  │                      │
-         └─▶│  Cronos Blockchain   │
-            │  + Facilitator       │
-            │                      │
-            └──────────────────────┘
+         │        ┌────────────────────────┴──────────────┐
+         │        │                                        │
+         │        │ Verification & Settlement              │
+         │        ▼                                        │
+         │  ┌──────────────────────┐            ┌─────────▼────────┐
+         │  │                      │            │                  │
+         └─▶│  Cronos Blockchain   │◀───────────│  AI Agent        │
+            │  + Facilitator       │   Monitor  │  (FastAPI)       │
+            │                      │            │  • Auto Payment  │
+            └──────────────────────┘            │  • Monitoring    │
+                                                │  • Anomaly AI    │
+                                                └──────────────────┘
 ```
 
 ## Backend Architecture
@@ -142,6 +144,152 @@ export async function handleX402Payment(params) {
 
 **Protected Routes** (require X402):
 - `POST /api/execute/:id` - Execute API (payment required)
+
+## AI Agent Architecture
+
+### Directory Structure
+
+```
+agent/
+├── app/
+│   ├── __init__.py             # App initialization
+│   ├── main.py                 # FastAPI entry point
+│   ├── config.py               # Configuration
+│   ├── database.py             # SQLite database
+│   ├── schemas.py              # Pydantic models
+│   ├── agent_wallet.py         # Autonomous wallet management
+│   ├── ai_analyzer.py          # AI-powered anomaly detection
+│   └── guardian_service.py     # Core guardian logic
+├── main.py                     # CLI entry point
+├── dev.py                      # Development server
+└── pyproject.toml              # Dependencies
+```
+
+### Key Components
+
+#### 1. Agent Wallet (`app/agent_wallet.py`)
+
+**Purpose**: Autonomous wallet with payment capabilities.
+
+**Features**:
+- Dedicated wallet with private key
+- Automatic payment execution without user confirmation
+- Web3.py integration for Cronos blockchain
+- Balance monitoring and gas estimation
+- Transaction signing and broadcasting
+
+```python
+class AgentWallet:
+    def __init__(self, private_key: str, rpc_url: str):
+        self.w3 = Web3(Web3.HTTPProvider(rpc_url))
+        self.account = self.w3.eth.account.from_key(private_key)
+    
+    async def pay_for_user(self, amount: int, recipient: str):
+        # Automatic payment without user signature
+        tx = await self.build_payment_tx(amount, recipient)
+        signed = self.account.sign_transaction(tx)
+        tx_hash = self.w3.eth.send_raw_transaction(signed.rawTransaction)
+        return tx_hash
+```
+
+#### 2. AI Analyzer (`app/ai_analyzer.py`)
+
+**Purpose**: Intelligent transaction analysis using AI.
+
+**AI Providers**:
+- OpenAI GPT-4
+- DeepSeek (alternative)
+
+**Analysis Features**:
+- Pattern recognition in spending behavior
+- Anomaly detection (unusual amounts, frequency, recipients)
+- Risk scoring (low, medium, high)
+- Contextual recommendations
+
+```python
+class AIAnalyzer:
+    def analyze_transaction(self, tx: Transaction, history: List[Transaction]):
+        prompt = f"""
+        Analyze this transaction:
+        Amount: {tx.amount}
+        Recipient: {tx.recipient}
+        Time: {tx.timestamp}
+        
+        Recent history: {history}
+        
+        Is this suspicious? Risk level?
+        """
+        
+        response = await self.ai_client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        
+        return self.parse_risk_assessment(response)
+```
+
+#### 3. Guardian Service (`app/guardian_service.py`)
+
+**Purpose**: Orchestrate monitoring, analysis, and auto-payment.
+
+**Flow**:
+1. Monitor blockchain for user's API calls
+2. Detect payment requirements
+3. Analyze transaction with AI
+4. Auto-pay if risk is acceptable
+5. Create alert if anomaly detected
+6. Auto-pause if high risk
+
+```python
+class GuardianService:
+    async def monitor_and_pay(self):
+        while True:
+            # Check for pending API calls
+            pending = await self.get_pending_calls()
+            
+            for call in pending:
+                # Analyze with AI
+                risk = await self.ai_analyzer.analyze(call)
+                
+                if risk.level == "low":
+                    # Auto-pay without user confirmation
+                    await self.wallet.pay_for_user(call.amount, call.recipient)
+                    
+                elif risk.level == "medium":
+                    # Create alert, wait for user approval
+                    await self.create_alert(call, risk)
+                    
+                else:  # high risk
+                    # Auto-pause and alert user
+                    await self.pause_and_alert(call, risk)
+```
+
+#### 4. Database (`app/database.py`)
+
+**Purpose**: Store transaction history and alerts.
+
+**Tables**:
+- `transactions` - Payment history
+- `alerts` - Anomaly alerts
+- `user_settings` - Spending limits, auto-pause config
+
+**Technology**: SQLite (demo), PostgreSQL (production)
+
+### API Endpoints
+
+**Wallet Management**:
+- `GET /api/agent/wallet/address` - Get agent wallet address
+- `GET /api/agent/wallet/balance` - Get current balance
+- `POST /api/agent/wallet/fund` - Fund agent wallet
+
+**Monitoring**:
+- `GET /api/agent/transactions` - Transaction history
+- `GET /api/agent/alerts` - Active alerts
+- `GET /api/agent/status` - Agent status and health
+
+**Configuration**:
+- `POST /api/agent/settings` - Update spending limits
+- `POST /api/agent/settings/auto-pause` - Configure auto-pause
 
 ## Frontend Architecture
 
@@ -261,7 +409,7 @@ Based on `demo/paywall/resource-app/src/integration/api.ts`
 
 ## Payment Flow Sequence
 
-### Step-by-Step
+### Traditional User Payment Flow
 
 ```mermaid
 sequenceDiagram
@@ -289,6 +437,45 @@ sequenceDiagram
     B->>B: Validate entitlement
     B-->>F: 200 OK + API response
     F->>U: Display data
+```
+
+### AI Guardian Auto-Payment Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant B as Backend
+    participant A as AI Agent
+    participant AI as AI Model
+    participant C as Cronos
+
+    U->>F: Execute API (via agent)
+    F->>B: POST /api/execute/:id
+    B->>B: Check entitlement
+    B-->>A: Payment required notification
+    
+    A->>A: Fetch transaction history
+    A->>AI: Analyze transaction pattern
+    AI-->>A: Risk assessment (low/medium/high)
+    
+    alt Risk is Low
+        A->>C: Auto-pay (no user confirmation)
+        C-->>A: txHash
+        A->>B: POST /api/pay (with txHash)
+        B-->>F: 200 OK + API response
+        F->>U: Display data
+    else Risk is Medium
+        A->>F: Alert: Review transaction
+        F->>U: Prompt approval
+        U->>F: Approve
+        F->>A: Proceed with payment
+        A->>C: Execute payment
+    else Risk is High
+        A->>A: Auto-pause payments
+        A->>F: Alert: Suspicious activity
+        F->>U: Show alert + recommendations
+    end
 ```
 
 ### 402 Challenge Format
@@ -337,6 +524,34 @@ This creates a signed authorization that allows the merchant to execute `transfe
 | Settlement | Monthly billing | Instant on-chain |
 | Pricing | Tiered plans | Pay-per-use |
 | Account | Required | Optional (wallet = identity) |
+| Payment Automation | Manual recharge | AI agent auto-payment |
+| Fraud Detection | Rule-based | AI-powered anomaly detection |
+
+## AI Guardian Benefits
+
+### Automatic Payment
+- No MetaMask signature per API call
+- Fund agent once, it handles all payments
+- Seamless user experience
+- Eliminates payment friction
+
+### Intelligent Monitoring
+- Real-time transaction analysis
+- Pattern recognition across history
+- Contextual risk assessment
+- Adaptive learning from behavior
+
+### Security Features
+- Anomaly detection before payment
+- Auto-pause on suspicious activity
+- Spending limit enforcement
+- User alerts with recommendations
+
+### User Control
+- Configure spending limits
+- Set auto-pause thresholds
+- Review transaction history
+- Approve/reject flagged payments
 
 ## Production Checklist
 
@@ -356,6 +571,14 @@ This creates a signed authorization that allows the merchant to execute `transfe
 - [ ] Category pages
 - [ ] User profile (published APIs, usage history)
 - [ ] Mobile responsive improvements
+
+### AI Agent
+- [ ] Machine learning model training on transaction patterns
+- [ ] Multi-user support with separate wallets
+- [ ] Advanced risk scoring algorithms
+- [ ] Integration with multiple AI providers
+- [ ] Real-time dashboard with live monitoring
+- [ ] Webhook notifications for alerts
 
 ### Security
 - [ ] Rate limiting per IP and wallet

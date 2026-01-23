@@ -1,108 +1,147 @@
-# 402Routes - API Marketplace with X402 Payments
+# 402Routes
 
-A decentralized API marketplace where developers can publish and monetize their APIs using the X402 payment protocol on Cronos blockchain.
+A decentralized API marketplace that replaces traditional API keys with blockchain-based per-call payments using the X402 protocol on Cronos. Think RapidAPI meets Web3: developers publish APIs, users pay per request with USDC, and everything is settled on-chain instantly.
 
-## Features
+## What Problem We Solve
 
-- **Publish APIs**: Developers can list their APIs with custom pricing
-- **Discover APIs**: Browse a marketplace of available APIs
-- **Pay-per-use**: Use X402 protocol for instant, blockchain-based payments
-- **No API Keys**: Authentication via wallet signatures (EIP-3009)
-- **Instant Settlement**: Payments are verified and settled on-chain
+Traditional API marketplaces require:
+- Monthly subscriptions for APIs you rarely use
+- API keys that can be stolen or leaked
+- Complex billing systems and payment processors
+- Trust in centralized platforms
 
-## Architecture
+402Routes eliminates these friction points by:
+- Pay-per-call pricing: only pay for what you use
+- Wallet-based authentication: your wallet is your API key
+- Instant on-chain settlement via X402 and EIP-3009
+- Decentralized and transparent payment tracking
+
+## Core Functionalities
+
+### 1. API Marketplace
+- Browse and discover third-party APIs
+- View pricing, endpoints, and real-time availability
+- Subscribe to APIs with your wallet (no monthly fees)
+- Get a unique 402-wrapped URL for each API
+
+### 2. X402 Payment Protocol
+- Automatic payment enforcement on protected endpoints
+- EIP-3009 signature-based payment authorization
+- Off-chain verification with on-chain settlement via Facilitator SDK
+- Reusable payment IDs for subsequent calls (entitlements)
+
+### 3. Subscription Management
+- Subscribe/unsubscribe to APIs with wallet signature
+- View all active subscriptions in your dashboard
+- Track spending per API in real-time
+- Manage subscriptions without intermediaries
+
+### 4. AI Budget Guardian (Autonomous Agent)
+- AI agent with its own wallet for autonomous payments
+- Real-time transaction monitoring and anomaly detection
+- Automatic spending optimization and budget protection
+- Intelligent alerts for unusual payment patterns
+
+### 5. Developer Tools
+- Publish APIs with custom pricing
+- Test APIs directly in the browser
+- Copy 402-wrapped URLs for server-to-server integration
+- View API usage statistics and revenue
+
+## System Architecture
+
+This monorepo contains four main applications:
 
 ### Backend (Express + TypeScript)
-- RESTful API for marketplace CRUD operations
-- X402 middleware for payment enforcement
-- Facilitator SDK integration for payment verification and settlement
-- In-memory storage (replace with database for production)
+RESTful API service handling marketplace operations, X402 payment enforcement, and API proxying.
+- [Installation Guide](./backend/README.md)
 
 ### Frontend (Next.js + React)
-- Modern UI with TailwindCSS
-- Wallet integration (MetaMask)
-- X402 payment flow with automatic network switching
-- Real-time API testing interface
+Modern web interface for browsing, subscribing, and executing APIs with wallet integration.
+- [Installation Guide](./frontend/README.md)
 
-## User Flows
+### Test Client (Vite + React)
+Standalone test application for validating 402-wrapped links and per-call X402 payments.
+- [Installation Guide](./test/README.md)
 
-### Flow 1: Publish API for Monetization
+### AI Budget Guardian (Python + FastAPI)
+Autonomous AI agent that manages automatic payments and monitors transactions for unusual behavior.
+- [Installation Guide](./agent/README.md)
 
-1. Connect wallet (MetaMask)
-2. Click "Publish API"
-3. Fill in API details:
-   - Name and description
-   - Category
-   - Endpoint path
-   - HTTP method
-   - Price per call
-4. Submit to marketplace
-5. API is now available for others to use (paid)
+## How It Works (Technical Flow)
 
-### Flow 2: Use API from Marketplace
+### Publishing an API
+1. Developer connects wallet to frontend
+2. Submits API details (name, endpoint, price, method)
+3. Backend stores API listing in marketplace
+4. System generates 402-wrapped proxy URL
+5. API is now discoverable and protected by X402
 
-1. Browse marketplace
-2. Select an API
-3. Enter request data (JSON)
-4. Click "Execute API Call"
-5. Wallet prompts for payment signature (X402/EIP-3009)
-6. Payment is verified and settled on-chain
-7. API call executes and returns data
-8. Can reuse payment ID for subsequent calls (entitlement)
+### Consuming an API
+1. User browses marketplace and selects an API
+2. User subscribes (recorded in db.json with wallet address)
+3. User receives the 402-wrapped endpoint URL
+4. First call to wrapped URL returns `402 Payment Required` with X402 challenge
+5. Frontend prompts wallet to sign EIP-3009 payment authorization
+6. Signed payment is submitted to `/api/pay` endpoint
+7. Backend verifies signature off-chain and settles on-chain via Facilitator
+8. Backend stores payment ID as entitlement
+9. User retries call with `x-payment-id` header
+10. Backend proxies request to original API and returns response
+11. Subsequent calls reuse the same payment ID (no additional payment needed)
 
-## Setup
+### AI Budget Guardian Flow
+1. User deposits funds to agent wallet
+2. Agent monitors all transactions in real-time
+3. AI analyzes spending patterns using OpenAI/DeepSeek
+4. Agent detects anomalies (unusual frequency, amount, or destination)
+5. Agent automatically pauses suspicious transactions
+6. User receives alerts and can review/approve transactions
+7. Agent resumes normal operation after verification
+
+## Quick Start
 
 ### Prerequisites
-
 - Node.js 20+
+- Python 3.10+ (for AI agent)
 - MetaMask or compatible wallet
-- Test CRO on Cronos Testnet
-- Test USDC on Cronos Testnet
+- Test CRO and USDC on Cronos Testnet
 
-### Backend Setup
+### Installation
 
-```bash
-cd backend
-npm install
-cp .env.example .env
-```
+Each application has its own detailed installation guide:
 
-Edit `.env`:
-```bash
-NODE_ENV=development
-PORT=8787
-NETWORK=cronos-testnet
-ASSET_ADDRESS=0x... # USDC on Cronos Testnet
-DEFAULT_PRICE=1000000
-FRONTEND_URL=http://localhost:3000
-```
+1. **Backend Service**: [backend/README.md](./backend/README.md)
+   - Express API with X402 middleware
+   - Runs on port 8787
 
-Run:
-```bash
-npm run dev
-```
+2. **Frontend Application**: [frontend/README.md](./frontend/README.md)
+   - Next.js web interface
+   - Runs on port 3000
 
-Backend runs on `http://localhost:8787`
+3. **Test Client**: [test/README.md](./test/README.md)
+   - Standalone validation tool
+   - Runs on port 5173
 
-### Frontend Setup
+4. **AI Budget Guardian**: [agent/README.md](./agent/README.md)
+   - Autonomous payment agent
+   - Runs on port 8000
+
+### Running All Services
 
 ```bash
-cd frontend
-npm install
-cp .env.local.example .env.local
-```
+# Terminal 1: Backend
+cd backend && npm install && npm run dev
 
-Edit `.env.local`:
-```bash
-NEXT_PUBLIC_API_BASE=http://localhost:8787
-```
+# Terminal 2: Frontend
+cd frontend && npm install && npm run dev
 
-Run:
-```bash
-npm run dev
-```
+# Terminal 3: AI Agent (optional)
+cd agent && pip install -e . && python main.py
 
-Frontend runs on `http://localhost:3000`
+# Terminal 4: Test Client (optional)
+cd test && npm install && npm run dev
+```
 
 ## API Endpoints
 
@@ -114,43 +153,77 @@ Frontend runs on `http://localhost:3000`
 - `POST /api/marketplace` - Create new API
 - `PUT /api/marketplace/:id` - Update API
 - `DELETE /api/marketplace/:id` - Delete API
+- `Key API Endpoints
+
+### Marketplace Operations
+- `GET /api/marketplace` - List all active APIs
+- `GET /api/marketplace/:id` - Get API details
+- `POST /api/marketplace` - Publish new API
+- `PUT /api/marketplace/:id` - Update API
+- `DELETE /api/marketplace/:id` - Delete/deactivate API
+
+### Subscription Management
+- `POST /api/subscriptions` - Subscribe to an API
+- `DELETE /api/subscriptions` - Unsubscribe from an API
+- `GET /api/subscriptions?walletAddress=...` - Get user subscriptions
+
+### Payment & Execution
 - `POST /api/pay` - Settle X402 payment
+- `POST /api/execute/:id` - Execute API call (protected)
+- `GET|POST /api/proxy/:apiId/*` - 402-wrapped proxy endpoint
 
-### Protected Endpoints (Require X402 Payment)
+### AI Agent Endpoints
+- `GET /api/agent/wallet/balance` - Check agent wallet balance
+- `GET /api/agent/wallet/status` - Get agent status and stats
+- `POST /api/agent/analyze` - Analyze transaction pattern
+- `GET /api/agent/alerts` - Get anomaly alerts
 
-- `POST /api/execute/:id` - Execute API call (requires payment)
+## Technology Stack
 
-## X402 Payment Flow
+**Backend**
+- Express.js with TypeScript
+- Facilitator SDK for X402 integration
+- Ethers.js for blockchain interaction
+- In-memory storage (db.json for demo)
 
-1. Client requests protected endpoint
-2. Backend responds with `402 Payment Required` + X402 challenge
-3. Frontend prompts user to sign payment authorization (EIP-3009)
-4. Frontend posts signed payment to `/api/pay`
-5. Backend verifies signature off-chain
-6. Backend settles payment on-chain via Facilitator
-7. Backend records entitlement (payment ID)
-8. Client retries request with `x-payment-id` header
-9. Backend grants access to protected resource
+**Frontend**
+- Next.js 15 with App Router
+- React 19 with TypeScript
+- TailwindCSS for styling
+- Ethers.js for wallet integration
 
-## Technologies
+**AI Agent**
+- FastAPI for REST API
+- OpenAI/DeepSeek for AI analysis
+- Web3.py for blockchain monitoring
+- SQLite for transaction history
 
-- **Backend**: Express, TypeScript, @crypto.com/facilitator-client
-- **Frontend**: Next.js, React, TailwindCSS, ethers.js
-- **Blockchain**: Cronos (Testnet/Mainnet)
-- **Protocol**: X402, EIP-3009
-- **Payment**: USDC (or any ERC-20 token)
+**Blockchain**
+- Cronos Testnet/Mainnet
+- X402 Protocol
+- EIP-3009 payment signatures
+- USDC as payment token
 
-## Production Considerations
+## Documentation
 
-- Replace in-memory storage with Redis or database
-- Add rate limiting and DDoS protection
-- Implement API key management for owners
-- Add authentication/authorization for API CRUD
-- Proxy actual API calls instead of mock responses
-- Add monitoring and logging
-- Deploy to production infrastructure
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - Detailed technical architecture
+- [USERFLOWS.md](./USERFLOWS.md) - Complete user flow diagrams
+- [HACKATHON_GUIDE.md](./HACKATHON_GUIDE.md) - Judge presentation guide
+
+## Demo & Testing
+
+For hackathon judges: See [HACKATHON_GUIDE.md](./HACKATHON_GUIDE.md) for a complete walkthrough without needing to run the application.
+
+## Production Roadmap
+
+- Replace db.json with PostgreSQL or MongoDB
+- Implement rate limiting and DDoS protection
+- Add API analytics dashboard for publishers
+- Implement revenue distribution and withdrawal system
+- Deploy to decentralized hosting (IPFS + Fleek)
+- Add support for multiple payment tokens
+- Implement governance for marketplace rules
 
 ## License
 
 MIT
-# 402routes

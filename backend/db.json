@@ -38,6 +38,58 @@
       "isActive": true,
       "id": "6584a581-96ad-4b1e-a3ac-c0fed8541b3a",
       "createdAt": 1768956261312
+    },
+    {
+      "name": "Yes API",
+      "description": "yes as a service",
+      "category": "Funny",
+      "baseUrl": "https://yes.lavx.hu",
+      "endpoint": "/yes",
+      "method": "GET",
+      "pricePerCall": "1000",
+      "ownerAddress": "0xb3173d618e51277372B473e02E8ab05e97A3626c",
+      "id": "ca85d906-0564-4347-8069-4e5f59f2a86c",
+      "createdAt": 1769141664738,
+      "isActive": false
+    },
+    {
+      "name": "Yes API",
+      "description": "Yes as a service",
+      "category": "Funny",
+      "baseUrl": "https://yes.lavx.hu",
+      "endpoint": "/yes",
+      "method": "GET",
+      "pricePerCall": "1000",
+      "ownerAddress": "0xb3173d618e51277372B473e02E8ab05e97A3626c",
+      "id": "940cefbe-2518-4e5c-87e4-5d6e6ab3e176",
+      "createdAt": 1769142769796,
+      "isActive": false
+    },
+    {
+      "name": "Yes API",
+      "description": "yes as a service",
+      "category": "Funny",
+      "baseUrl": "https://yes.lavx.hu",
+      "endpoint": "/yes",
+      "method": "GET",
+      "pricePerCall": "1000",
+      "ownerAddress": "0xb3173d618e51277372B473e02E8ab05e97A3626c",
+      "id": "19a4b8ce-23da-40aa-a0b5-b9f31fd54174",
+      "createdAt": 1769143174626,
+      "isActive": false
+    },
+    {
+      "name": "Yes API",
+      "description": "Yes as a service",
+      "category": "Funny",
+      "baseUrl": "https://yes.lavx.hu",
+      "endpoint": "/yes",
+      "method": "GET",
+      "pricePerCall": "1000",
+      "ownerAddress": "0xb3173d618e51277372B473e02E8ab05e97A3626c",
+      "id": "ad0711e6-04a0-48a3-988e-6db9bdd46b4d",
+      "createdAt": 1769143301466,
+      "isActive": true
     }
   ],
   "subscriptions": [
@@ -45,8 +97,72 @@
       "walletAddress": "0x6F21C2155bF93b49348a422A604310F8CCd6ec74",
       "apiId": "7b5721e4-6350-4160-aa07-d29759a8e70a",
       "timestamp": 1768960928906
+    },
+    {
+      "walletAddress": "0xb3173d618e51277372B473e02E8ab05e97A3626c",
+      "apiId": "7b5721e4-6350-4160-aa07-d29759a8e70a",
+      "timestamp": 1769141507984
+    },
+    {
+      "walletAddress": "0xb3173d618e51277372B473e02E8ab05e97A3626c",
+      "apiId": "6584a581-96ad-4b1e-a3ac-c0fed8541b3a",
+      "timestamp": 1769141513278
+    },
+    {
+      "walletAddress": "0x6F21C2155bF93b49348a422A604310F8CCd6ec74",
+      "apiId": "ca85d906-0564-4347-8069-4e5f59f2a86c",
+      "timestamp": 1769141702054
+    },
+    {
+      "walletAddress": "0x6F21C2155bF93b49348a422A604310F8CCd6ec74",
+      "apiId": "6584a581-96ad-4b1e-a3ac-c0fed8541b3a",
+      "timestamp": 1769141745180
+    },
+    {
+      "walletAddress": "0xb3173d618e51277372B473e02E8ab05e97A3626c",
+      "apiId": "ca85d906-0564-4347-8069-4e5f59f2a86c",
+      "timestamp": 1769141837417
+    },
+    {
+      "walletAddress": "0xb3173d618e51277372B473e02E8ab05e97A3626c",
+      "apiId": "940cefbe-2518-4e5c-87e4-5d6e6ab3e176",
+      "timestamp": 1769142777015
+    },
+    {
+      "walletAddress": "0xb3173d618e51277372B473e02E8ab05e97A3626c",
+      "apiId": "19a4b8ce-23da-40aa-a0b5-b9f31fd54174",
+      "timestamp": 1769143177431
+    },
+    {
+      "walletAddress": "0xb3173d618e51277372B473e02E8ab05e97A3626c",
+      "apiId": "ad0711e6-04a0-48a3-988e-6db9bdd46b4d",
+      "timestamp": 1769143303294
     }
   ],
-  "wallets": [],
-  "transactions": []
+  "wallets": [
+    "0xb3173d618e51277372B473e02E8ab05e97A3626c"
+  ],
+  "transactions": [
+    {
+      "id": "7949bee7-42f6-493b-9494-9af223c60ddf",
+      "apiId": "ca85d906-0564-4347-8069-4e5f59f2a86c",
+      "walletAddress": "unknown",
+      "amount": "1000",
+      "timestamp": 1769141897126
+    },
+    {
+      "id": "01e6f351-5d2c-498b-8897-9a795fdf2ad5",
+      "apiId": "940cefbe-2518-4e5c-87e4-5d6e6ab3e176",
+      "walletAddress": "unknown",
+      "amount": "1000",
+      "timestamp": 1769142857625
+    },
+    {
+      "id": "7037e754-4d68-4a59-b87e-1d7bb388e532",
+      "apiId": "ad0711e6-04a0-48a3-988e-6db9bdd46b4d",
+      "walletAddress": "unknown",
+      "amount": "1000",
+      "timestamp": 1769143366483
+    }
+  ]
 }

@@ -25,6 +25,7 @@ export interface ApiClient {
   // Subscriptions
   subscribeToApi(walletAddress: string, apiId: string): Promise<any>;
   getSubscriptions(walletAddress: string): Promise<any[]>;
+  unsubscribeToApi(walletAddress: string, apiId: string): Promise<void>;
 }
 
 export function createApiClient(): ApiClient {
@@ -44,6 +45,18 @@ export function createApiClient(): ApiClient {
       const res = await fetch(`${API_BASE}/api/subscriptions?walletAddress=${walletAddress}`);
       const json = await res.json();
       return json.data || [];
+    },
+
+    async unsubscribeToApi(walletAddress: string, apiId: string): Promise<void> {
+      const res = await fetch(`${API_BASE}/api/subscriptions`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress, apiId }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error || 'Failed to unsubscribe');
+      }
     },
 
     async getAllApis(): Promise<ApiListing[]> {

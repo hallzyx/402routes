@@ -56,6 +56,23 @@ export class MarketplaceController {
   };
 
   /**
+   * DELETE /api/subscriptions
+   * Unsubscribe from an API.
+   */
+  unsubscribeToApi = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { walletAddress, apiId } = req.body;
+      if (!walletAddress || !apiId) {
+        return res.status(400).json({ ok: false, error: 'Missing walletAddress or apiId' });
+      }
+      await this.service.unsubscribeToApi(walletAddress, apiId);
+      res.json({ ok: true, message: 'Unsubscribed successfully' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
    * GET /api/marketplace/:id
    * Returns a specific API listing by id.
    */

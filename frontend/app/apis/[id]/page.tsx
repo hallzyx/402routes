@@ -139,15 +139,15 @@ export default function ApiDetailPage({ params }: { params: Promise<{ id: string
               <div className="p-6 bg-purple-50 border-2 border-purple-200 rounded-xl">
                 <div className="flex items-center gap-2 mb-3">
                   <HiOutlineCodeBracket className="w-5 h-5 text-purple-600" />
-                  <p className="text-sm font-bold text-gray-900">Endpoint de Consumo 402 Wrapped</p>
+                  <p className="text-sm font-bold text-gray-900">402 Wrapped link</p>
                 </div>
                 <code className="block px-4 py-3 bg-white border-2 border-gray-300 rounded-lg text-sm font-mono text-gray-700 break-all">
                   {process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8787'}/api/proxy/{api.id}{api.endpoint}
                 </code>
-                <p className="text-xs text-gray-600 mt-3 leading-relaxed">
+                {/* <p className="text-xs text-gray-600 mt-3 leading-relaxed">
                   🌐 <b>Navegador:</b> Redirige automáticamente al pago con MetaMask.<br/>
                   🔧 <b>Scripts/Backend:</b> Incluye el header <code className="px-1 py-0.5 bg-gray-200 rounded">x-payment-id</code> para pagos programáticos.
-                </p>
+                </p> */}
               </div>
             </div>
           )}
